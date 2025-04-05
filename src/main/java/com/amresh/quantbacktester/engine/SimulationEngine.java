@@ -1,22 +1,39 @@
 package com.amresh.quantbacktester.engine;
 
 import com.amresh.quantbacktester.model.MarketData;
+import com.amresh.quantbacktester.model.Portfolio;
+import com.amresh.quantbacktester.risk.RiskManager;
+import com.amresh.quantbacktester.strategy.TradingStrategy;
 import java.util.List;
 
 public class SimulationEngine {
     private List<MarketData> marketDataList;
-    private double cashBalance;
+    private Portfolio portfolio;
+    private RiskManager riskManager;
+    private List<TradingStrategy> strategies;
 
-    public SimulationEngine(List<MarketData> marketDataList) {
+    // Constructor accepts market data, a portfolio, a risk manager, and a list of strategies
+    public SimulationEngine(List<MarketData> marketDataList, Portfolio portfolio,
+                            RiskManager riskManager, List<TradingStrategy> strategies) {
         this.marketDataList = marketDataList;
-        this.cashBalance = 100000; // Starting cash balance, adjust as needed
+        this.portfolio = portfolio;
+        this.riskManager = riskManager;
+        this.strategies = strategies;
     }
 
     public void runSimulation() {
         for (MarketData data : marketDataList) {
-            // Currently, just output the market data. Later, you will integrate strategies and portfolio updates.
-            System.out.println("Processing data at " + data.getTimestamp() + " with close price: " + data.getClose());
+            System.out.println("Processing data at " + data.getTimestamp() +
+                    " | Close Price: " + data.getClose());
+            for (TradingStrategy strategy : strategies) {
+                // Before executing the strategy's signal, check risk conditions.
+                // (For now, we assume strategies themselves call portfolio.addTrade.
+                // In a more advanced version, you might have the strategy return a trade signal,
+                // then the engine consults the RiskManager before executing the trade.)
+                strategy.onData(data, portfolio);
+            }
         }
-        System.out.println("Simulation complete. Final cash balance: " + cashBalance);
+        System.out.println("Simulation complete. Final portfolio state: ");
+        System.out.println(portfolio);
     }
 }
